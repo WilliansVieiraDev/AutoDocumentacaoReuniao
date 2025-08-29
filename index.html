@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gravador de Voz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h2 {
+      margin-bottom: 2rem;
+    }
+    button {
+      margin: 0.5rem;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #startBtn {
+      background-color: #1e88e5;
+      color: white;
+    }
+    #startBtn:hover {
+      background-color: #1565c0;
+    }
+    #stopBtn {
+      background-color: #e53935;
+      color: white;
+    }
+    #stopBtn:hover {
+      background-color: #b71c1c;
+    }
+    audio, #downloadLink {
+      margin-top: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    #downloadLink {
+      color: #90caf9;
+      text-decoration: none;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎤 Gravador de Voz</h2>
+  <button id="startBtn">▶️ Iniciar Gravação</button>
+  <button id="stopBtn" disabled>⏹️ Parar Gravação</button>
+  <audio id="audioPlayer" controls style="display:none"></audio>
+  <a id="downloadLink" href="#" download="gravacao.webm" style="display:none">⬇️ Baixar Gravação</a>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const downloadLink = document.getElementById('downloadLink');
+
+    startBtn.onclick = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(blob);
+        audioPlayer.src = audioUrl;
+        audioPlayer.style.display = 'block';
+
+        downloadLink.href = audioUrl;
+        downloadLink.style.display = 'block';
+      };
+
+      mediaRecorder.start();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    };
+
+    stopBtn.onclick = () => {
+      mediaRecorder.stop();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    };
+  </script>
+</body>
+</html>
